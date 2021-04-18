@@ -1,3 +1,5 @@
+// DO NOT run this code, just some code used for capturing the idea
+
 enum Direction {
 	UP, DOWN
 }
@@ -6,7 +8,7 @@ enum Status {
 	UP, DOWN, IDLE
 }
 
-class Request {
+class Request implements Comparable<Request> {
 	private int level;
 	
 	public Request(int l)
@@ -17,6 +19,12 @@ class Request {
 	public int getLevel()
 	{
 		return level;
+	}
+
+	public int compareTo(Request r) {
+		if (r.level == this.level) return 0;
+		else if (r.level < this.level) return 1;
+		else return -1;
 	}
 }
 
@@ -65,8 +73,8 @@ public class Elevator {
 	
 	private List<ElevatorButton> buttons;
 	
-	private List<Boolean> upStops;
-	private List<Boolean> downStops;
+	private PriorityQueue<Request> upStops;
+	private PriorityQueue<Request> downStops;
 	
 	private int currLevel;
 	private Status status;
@@ -74,16 +82,11 @@ public class Elevator {
 	public Elevator(int n)
 	{
 		buttons = new ArrayList<ElevatorButton>();
-		upStops = new ArrayList<Boolean>();
-		downStops = new ArrayList<Boolean>();
+		upStops = new TreeMap<int, Request>(); 
+		downStops = new TreeMap<int, Request>();
+
 		currLevel = 0;
 		status = Status.IDLE;
-		
-		for(int i = 0; i < n; i++)
-		{
-			upStops.add(false);
-			downStops.add(false);
-		}
 	}
 	
 	public void insertButton(ElevatorButton eb)
@@ -95,7 +98,7 @@ public class Elevator {
 	{
 		if(r.getDirection() == Direction.UP)
 		{
-			upStops.set(r.getLevel() - 1, true);
+			upStops.put(r.level, r);
 			if(noRequests(downStops))
 			{
 				status = Status.UP;
@@ -103,7 +106,7 @@ public class Elevator {
 		}
 		else 
 		{
-			downStops.set(r.getLevel() - 1, true);
+			downStops.put(r.level, r);
 			if(noRequests(upStops))
 			{
 				status = Status.DOWN;
@@ -118,14 +121,18 @@ public class Elevator {
 		{
 			if(r.getLevel() >= currLevel + 1)
 			{
-				upStops.set(r.getLevel() - 1, true);
+				upStops.put(r.level, r);
+			} else {
+				System.out.println("invalid");
 			}
 		}
 		else if(status == Status.DOWN)
 		{
 			if(r.getLevel() <= currLevel + 1)
 			{
-				downStops.set(r.getLevel() - 1, true);
+				downStops.put(r.level, r);
+			} else {
+				System.out.println("invalid");
 			}
 		}
 	}
@@ -134,28 +141,44 @@ public class Elevator {
 	{
 		if(status == Status.UP)
 		{
-			for(int i = 0; i < upStops.size(); i++)
-			{
-				int checkLevel = (currLevel + i) % upStops.size();
-				if(upStops.get(checkLevel))
-				{
-					currLevel = checkLevel;
-					upStops.set(checkLevel, false);
-					break;
+			int startFloor = currLevel;
+			Request request = upStops.higherEntry(currLevel);
+			if (startFloor < request.level()) {
+				for (int i = startFloor; i <= request.level(); i++) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					System.out.println("We have reached floor -- " + i);
+					currentFloor = i;
+					if (upStops.higherEntry(currLevel).level < request.level) {
+						request = upStops.higherEntry(currLevel);
+					}
 				}
+				upStops.remove(request.level);
 			}
 		}
 		else if(status == Status.DOWN)
 		{
-			for(int i = 0; i < downStops.size(); i++)
-			{
-				int checkLevel = (currLevel + downStops.size() - i) % downStops.size();
-				if(downStops.get(checkLevel))
-				{
-					currLevel = checkLevel;
-					downStops.set(checkLevel, false);
-					break;
+			int startFloor = currLevel;
+			Request request = downStops.lowerEntry(currLevel);
+			if (startFloor > request.level()) {
+				for (int i = startFloor; i >= request.level(); i--) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					System.out.println("We have reached floor -- " + i);
+					currentFloor = i;
+					if (downStops.lowerEntry(currLevel).level < request.level) {
+						request = downStops.lowerEntry(currLevel);
+					}
 				}
+				downStops.remove(request.level);
 			}
 		}
 	}
@@ -198,16 +221,9 @@ public class Elevator {
 		}
 	}
 	
-	private boolean noRequests(List<Boolean> stops)
+	private boolean noRequests(TreeMap<int, Request> requests)
 	{
-		for(int i = 0; i < stops.size(); i++)
-		{
-			if(stops.get(i))
-			{
-				return false;
-			}
-		}
-		return true;
+		return requests.size() == 0;
 	}
 	
 	public String elevatorStatusDescription()
