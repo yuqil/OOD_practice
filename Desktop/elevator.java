@@ -251,4 +251,104 @@ public class Elevator {
 				+ ".\n*****************************************\n";
 		return description;
 	}
+
+
+	public void startElevator() {
+		while (true) {
+
+			wihle (hastasks()) {
+				openGate();
+				closeGate();
+			}
+		}
+	}
+}
+
+
+
+class ProcessJobWorker implements Runnable {
+
+	private Elevator elevator;
+
+	ProcessJobWorker(Elevator elevator) {
+		this.elevator = elevator;
+	}
+
+	@Override
+	public void run() {
+		/**
+		 * start the elevator
+		 */
+		elevator.startElevator();
+	}
+
+}
+
+
+class AddJobWorker implements Runnable {
+
+	private Elevator elevator;
+	private Request request;
+
+	AddJobWorker(Elevator elevator, Request request) {
+		this.elevator = elevator;
+		this.request = request;
+	}
+
+	@Override
+	public void run() {
+
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		elevator.addJob(request);
+	}
+
+}
+
+
+
+public class TestElevator {
+
+	public static void main(String args[]) {
+
+		Elevator elevator = new Elevator();
+
+		/**
+		 * Thread for starting the elevator
+		 */
+		ProcessJobWorker processJobWorker = new ProcessJobWorker(elevator);
+		Thread t2 = new Thread(processJobWorker);
+		t2.start();
+
+		try {
+			Thread.sleep(300);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		ExternalRequest er = new ExternalRequest(Direction.DOWN, 5);
+
+		InternalRequest ir = new InternalRequest(0);
+
+		Request request1 = new Request(ir, er);
+
+
+		/**
+		 * Pass job to the elevator
+		 */
+		new Thread(new AddJobWorker(elevator, request1)).start();
+
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
 }
