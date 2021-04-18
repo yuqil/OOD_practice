@@ -16,7 +16,7 @@ class Request implements Comparable<Request> {
 		level = l;
 	}
 	
-	public int getLevel()
+	public int level()
 	{
 		return level;
 	}
@@ -200,23 +200,26 @@ public class Elevator {
 		}
 		else if(status == Status.UP)
 		{
-			if(noRequests(upStops))
+			if(upStops.higherEntry(currLevel) == null)
 			{
-				if(noRequests(downStops))
+				if(!noRequests(downStops))
 				{
-					status = Status.IDLE;
+					status = Status.DOWN;
 				}
-				else status = Status.DOWN;
+				else {
+					currLevel = 0; // go to floow 0;
+				}
 			}
 		}
 		else {
-			if(noRequests(downStops))
+			if(downStops.lowerEntry(currLevel) == level)
 			{
-				if(noRequests(upStops))
+				if(!noRequests(upStops))
 				{
-					status = Status.IDLE;
+					status = Status.up;
+				} else {
+					currLevel = n; // go to top floor
 				}
-				else status = Status.UP;
 			}
 		}
 	}
