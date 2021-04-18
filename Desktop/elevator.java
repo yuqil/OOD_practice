@@ -73,8 +73,8 @@ public class Elevator {
 	
 	private List<ElevatorButton> buttons;
 	
-	private PriorityQueue<Request> upStops;
-	private PriorityQueue<Request> downStops;
+	private TreeMap<int, Request> upStops;
+	private TreeMap<int, Request> downStops;
 	
 	private int currLevel;
 	private Status status;
