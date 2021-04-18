@@ -143,42 +143,55 @@ public class Elevator {
 		{
 			int startFloor = currLevel;
 			Request request = upStops.higherEntry(currLevel);
-			if (startFloor < request.level()) {
-				for (int i = startFloor; i <= request.level(); i++) {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+			if (request != null) {
+				// Still have tasks above current floor
+				if (startFloor < request.level()) {
+					for (int i = startFloor; i <= request.level(); i++) {
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						System.out.println("We have reached floor -- " + i);
+						currentFloor = i;
+						if (upStops.higherEntry(currLevel).level < request.level) {
+							request = upStops.higherEntry(currLevel);
+						}
 					}
-					System.out.println("We have reached floor -- " + i);
-					currentFloor = i;
-					if (upStops.higherEntry(currLevel).level < request.level) {
-						request = upStops.higherEntry(currLevel);
-					}
+					upStops.remove(request.level);
 				}
-				upStops.remove(request.level);
+			} else {
+				// all the up task starts below current level
+				request = upStops.firstEntry();
+				currentFloor = request.level;
 			}
 		}
 		else if(status == Status.DOWN)
 		{
 			int startFloor = currLevel;
 			Request request = downStops.lowerEntry(currLevel);
-			if (startFloor > request.level()) {
-				for (int i = startFloor; i >= request.level(); i--) {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+			if (request != null) {
+				if (startFloor > request.level()) {
+					for (int i = startFloor; i >= request.level(); i--) {
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						System.out.println("We have reached floor -- " + i);
+						currentFloor = i;
+						if (downStops.lowerEntry(currLevel).level < request.level) {
+							request = downStops.lowerEntry(currLevel);
+						}
 					}
-					System.out.println("We have reached floor -- " + i);
-					currentFloor = i;
-					if (downStops.lowerEntry(currLevel).level < request.level) {
-						request = downStops.lowerEntry(currLevel);
-					}
+					downStops.remove(request.level);
 				}
-				downStops.remove(request.level);
+			}	else {
+				// all the down task starts above current level, go to the highest
+				request = downStops.lastEntry();
+				currentFloor = request.level;				
 			}
 		}
 	}
