@@ -75,7 +75,18 @@ public class Elevator {
 	
 	private TreeMap<int, Request> upStops;
 	private TreeMap<int, Request> downStops;
-	
+	ReadWriteLock lock = new ReentrantReadWriteLock
+	private Door door;
+
+    // handle concurrent access of the map
+    // lock.writeLock().lock();
+    // try {
+    //     sleep(1);
+    //     map.put("foo", "bar");
+    // } finally {
+    //     lock.writeLock().unlock();
+    // }
+
 	private int currLevel;
 	private Status status;
 	
@@ -136,8 +147,12 @@ public class Elevator {
 			}
 		}
 	}
+
+		public void openGate() throws Exception {
+			door.open();
+		}
 	
-	public void openGate() throws Exception
+	public void moveToNextDestination() throws Exception
 	{
 		if(status == Status.UP)
 		{
@@ -196,7 +211,11 @@ public class Elevator {
 		}
 	}
 	
-	public void closeGate()
+	public void closeGate() {
+
+	}
+
+	public void updateStatus()
 	{
 		if(status == Status.IDLE)
 		{
@@ -220,7 +239,7 @@ public class Elevator {
 					status = Status.DOWN;
 				}
 				else {
-					currLevel = 0; // go to floow 0;
+					if(noRequests(upStops)) status = Status.IDLE;
 				}
 			}
 		}
@@ -229,9 +248,9 @@ public class Elevator {
 			{
 				if(!noRequests(upStops))
 				{
-					status = Status.up;
+					status = Status.UP;
 				} else {
-					currLevel = n; // go to top floor
+					if(noRequests(downStops)) status = Status.IDLE;
 				}
 			}
 		}
@@ -256,9 +275,11 @@ public class Elevator {
 	public void startElevator() {
 		while (true) {
 
-			wihle (hastasks()) {
+			while (hastasks()) {
+				moveToNextDestination();
 				openGate();
 				closeGate();
+				updateStatus();
 			}
 		}
 	}
